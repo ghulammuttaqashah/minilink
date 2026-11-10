@@ -253,7 +253,10 @@ function ActivityDetails({ url, onClose }) {
           </svg>
           <div className="absolute inset-x-8 bottom-0 flex justify-between">
             {dailyActivity.map(({ date }) => (
-              <span className="w-12 -translate-x-1/2 text-center text-[10px] font-medium text-slate-500" key={date.toISOString()}>{dateFormatter.format(date).split(",")[0]}</span>
+              <span className="w-16 -translate-x-1/2 text-center text-[10px] font-medium leading-4 text-slate-400" key={date.toISOString()}>
+                <span className="block text-slate-500">{new Intl.DateTimeFormat("en", { weekday: "short" }).format(date)}</span>
+                <span className="block">{new Intl.DateTimeFormat("en", { month: "short", day: "numeric" }).format(date)}</span>
+              </span>
             ))}
           </div>
         </div>
