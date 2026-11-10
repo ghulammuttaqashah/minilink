@@ -9,6 +9,7 @@ export default function LinkTable({ urls, loading, onRefresh, onDelete }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState("recent");
+  const [selectedActivity, setSelectedActivity] = useState(null);
   const filteredUrls = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     const results = urls.filter((url) => {
@@ -76,7 +77,7 @@ export default function LinkTable({ urls, loading, onRefresh, onDelete }) {
         </p>
       </div>
       {loading ? (
-        <div className="flex min-h-48 items-center justify-center"><LoadingDots label="Loading links" /></div>
+        <LinkTableSkeleton />
       ) : urls.length === 0 ? (
         <div className="flex min-h-48 flex-col items-center justify-center gap-2 text-sm text-slate-500">
           <span className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-lime-300/10 text-xl text-lime-300">↗</span>
@@ -104,30 +105,48 @@ export default function LinkTable({ urls, loading, onRefresh, onDelete }) {
               </a>
               <span className="truncate font-medium text-slate-300" title={url.originalUrl}>{url.originalUrl}</span>
               <span className="font-medium text-slate-400">{formatDate(url.createdAt)}</span>
-              <ActivityGraph clickHistory={url.clickHistory} clickCount={url.clickCount || 0} />
+              <ActivityGraph
+                clickHistory={url.clickHistory}
+                clickCount={url.clickCount || 0}
+                onOpen={() => setSelectedActivity(url)}
+              />
               <strong className="text-right font-bold text-white">{url.clickCount || 0}</strong>
               <button type="button" className="rounded-md border border-rose-300/20 px-2 py-1.5 text-xs font-bold text-rose-200 transition hover:bg-rose-300/10 disabled:opacity-50" onClick={() => onDelete?.(url)} aria-label={`Delete ${url.shortCode}`}>Delete</button>
             </div>
           ))}
         </div>
       )}
+      {selectedActivity && (
+        <ActivityDetails
+          url={selectedActivity}
+          onClose={() => setSelectedActivity(null)}
+        />
+      )}
     </section>
   );
 }
 
-function ActivityGraph({ clickHistory = [], clickCount }) {
+function getDailyActivity(clickHistory = []) {
   const now = new Date();
-  const dailyCounts = Array.from({ length: 7 }, (_, index) => {
-    const day = new Date(now);
-    day.setHours(0, 0, 0, 0);
-    day.setDate(day.getDate() - (6 - index));
-    const nextDay = new Date(day);
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(now);
+    date.setHours(0, 0, 0, 0);
+    date.setDate(date.getDate() - (6 - index));
+    const nextDay = new Date(date);
     nextDay.setDate(nextDay.getDate() + 1);
-    return clickHistory.filter((value) => {
-      const timestamp = new Date(value);
-      return timestamp >= day && timestamp < nextDay;
-    }).length;
+    return {
+      date,
+      count: clickHistory.filter((value) => {
+        const timestamp = new Date(value);
+        return timestamp >= date && timestamp < nextDay;
+      }).length,
+    };
   });
+}
+
+function ActivityGraph({ clickHistory = [], clickCount, onOpen }) {
+  const dailyActivity = getDailyActivity(clickHistory);
+  const dailyCounts = dailyActivity.map(({ count }) => count);
   const hasHistory = dailyCounts.some((count) => count > 0);
   const max = Math.max(...dailyCounts, 1);
   const points = dailyCounts.map((count, index) => {
@@ -137,7 +156,13 @@ function ActivityGraph({ clickHistory = [], clickCount }) {
   }).join(" ");
 
   return (
-    <div className="min-w-0" title={`${clickCount} total clicks over the last 7 days`}>
+    <button
+      type="button"
+      className="group min-w-0 text-left"
+      onClick={onOpen}
+      title="Open detailed activity"
+      aria-label={`View detailed activity for ${clickCount} clicks`}
+    >
       {hasHistory ? (
         <svg className="h-10 w-full min-w-28 overflow-visible" viewBox="0 0 100 34" preserveAspectRatio="none" role="img" aria-label={`${clickCount} total clicks over the last 7 days`}>
           <line x1="4" y1="30" x2="96" y2="30" stroke="currentColor" strokeOpacity=".2" vectorEffect="non-scaling-stroke" />
@@ -150,11 +175,107 @@ function ActivityGraph({ clickHistory = [], clickCount }) {
       ) : (
         <div className="flex h-10 items-center text-[10px] font-medium text-slate-500">No activity yet</div>
       )}
-      <span className="text-[10px] font-medium text-slate-500">last 7 days</span>
+      <span className="flex items-center gap-1 text-[10px] font-bold text-slate-500 transition group-hover:text-lime-300">
+        last 7 days <span aria-hidden="true">↗</span>
+      </span>
+    </button>
+  );
+}
+
+function ActivityDetails({ url, onClose }) {
+  const dailyActivity = getDailyActivity(url.clickHistory || []);
+  const recentClicks = dailyActivity.reduce((sum, day) => sum + day.count, 0);
+  const max = Math.max(...dailyActivity.map(({ count }) => count), 1);
+  const dateFormatter = new Intl.DateTimeFormat("en", { weekday: "short", month: "short", day: "numeric" });
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose();
+      }}
+    >
+      <div className="w-full max-w-2xl rounded-2xl border border-white/10 bg-slate-900 p-5 shadow-2xl shadow-black/50 sm:p-7" role="dialog" aria-modal="true" aria-labelledby="activity-dialog-title">
+        <div className="flex items-start justify-between gap-5">
+          <div className="min-w-0">
+            <p className="font-mono text-xs font-bold uppercase tracking-[.2em] text-lime-300">Link analytics</p>
+            <h2 id="activity-dialog-title" className="mt-2 truncate text-2xl font-bold text-white">{url.customerName || url.shortCode}</h2>
+            <p className="mt-1 truncate font-mono text-xs text-slate-400">{url.shortUrl}</p>
+          </div>
+          <button type="button" className="rounded-lg px-3 py-2 text-xl leading-none text-slate-400 hover:bg-white/10 hover:text-white" onClick={onClose} aria-label="Close activity details">×</button>
+        </div>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-xl border border-lime-300/20 bg-lime-300/10 p-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-lime-100/70">All-time clicks</p>
+            <strong className="mt-1 block text-3xl font-bold text-white">{url.clickCount || 0}</strong>
+          </div>
+          <div className="rounded-xl border border-white/10 bg-black/10 p-4">
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Last 7 days</p>
+            <strong className="mt-1 block text-3xl font-bold text-white">{recentClicks}</strong>
+          </div>
+        </div>
+        <div className="mt-6 rounded-xl border border-white/10 bg-black/10 p-4 sm:p-5">
+          <div className="mb-5 flex items-center justify-between">
+            <h3 className="font-bold text-white">Daily click activity</h3>
+            <span className="text-xs font-medium text-slate-500">Last 7 days</span>
+          </div>
+          <div className="grid h-48 grid-cols-7 items-end gap-2 sm:gap-4">
+            {dailyActivity.map(({ date, count }) => (
+              <div className="flex h-full flex-col items-center justify-end gap-2" key={date.toISOString()}>
+                <span className="text-xs font-bold text-lime-300">{count}</span>
+                <div className="flex h-32 w-full items-end rounded-t-md bg-white/5">
+                  <div className="w-full rounded-t-md bg-lime-300 transition-all" style={{ height: `${count ? Math.max((count / max) * 100, 8) : 0}%` }} />
+                </div>
+                <span className="text-center text-[10px] font-medium text-slate-500">{dateFormatter.format(date)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <button type="button" className="mt-6 w-full rounded-lg border border-white/10 px-4 py-3 text-sm font-bold text-slate-300 transition hover:bg-white/10 hover:text-white" onClick={onClose}>Close details</button>
+      </div>
     </div>
   );
 }
 
 function LoadingDots({ label = "Refreshing" }) {
   return <span className="flex gap-1" role="status" aria-label={label}><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-lime-300" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-lime-300 [animation-delay:150ms]" /><i className="h-1.5 w-1.5 animate-bounce rounded-full bg-lime-300 [animation-delay:300ms]" /></span>;
+}
+
+function LinkTableSkeleton() {
+  return (
+    <div className="overflow-x-auto" role="status" aria-label="Loading links">
+      <div className="grid min-w-[900px] grid-cols-[1.1fr_1.5fr_1fr_1.1fr_.45fr_.6fr] gap-4 border-b border-white/10 px-5 py-4 sm:px-7">
+        {["w-20", "w-24", "w-16", "w-20", "w-12", "w-14"].map((width, index) => (
+          <SkeletonBlock className={`h-2.5 ${width}`} key={`${width}-${index}`} />
+        ))}
+      </div>
+      <div className="divide-y divide-white/5">
+        {[1, 2, 3, 4].map((row) => (
+          <div className="grid min-w-[900px] grid-cols-[1.1fr_1.5fr_1fr_1.1fr_.45fr_.6fr] items-center gap-4 px-5 py-5 sm:px-7" key={row}>
+            <div className="flex items-center gap-2">
+              <SkeletonBlock className="h-2 w-2 rounded-full" />
+              <div className="grid gap-2">
+                <SkeletonBlock className="h-3 w-24" />
+                <SkeletonBlock className="h-2 w-16" />
+              </div>
+            </div>
+            <SkeletonBlock className="h-3 w-11/12" />
+            <SkeletonBlock className="h-3 w-20" />
+            <div className="grid gap-2">
+              <SkeletonBlock className="h-8 w-full rounded-md" />
+              <SkeletonBlock className="h-2 w-16" />
+            </div>
+            <SkeletonBlock className="ml-auto h-3 w-6" />
+            <SkeletonBlock className="h-7 w-14 rounded-md" />
+          </div>
+        ))}
+      </div>
+      <span className="sr-only">Loading your links</span>
+    </div>
+  );
+}
+
+function SkeletonBlock({ className }) {
+  return <span className={`skeleton-shimmer block rounded bg-white/10 ${className}`} aria-hidden="true" />;
 }

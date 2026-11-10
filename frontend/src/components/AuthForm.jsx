@@ -14,6 +14,7 @@ export default function AuthForm({ mode, onModeChange, onAuthenticated }) {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const isRegistering = mode === "register";
   const completedChecks = passwordChecks.filter(({ test }) => test(form.password)).length;
   const passwordIsValid = completedChecks === passwordChecks.length;
@@ -51,7 +52,18 @@ export default function AuthForm({ mode, onModeChange, onAuthenticated }) {
           <span>Password</span>
           {isRegistering && <span className={passwordIsValid ? "text-lime-300" : "text-slate-500"}>{form.password.length}/8 minimum</span>}
         </span>
-        <input className="mt-1 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-slate-600 focus:border-lime-300" type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} placeholder={isRegistering ? "Create a strong password" : "Your password"} required />
+        <div className="relative mt-1">
+          <input className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 pr-12 text-white outline-none placeholder:text-slate-600 focus:border-lime-300" type={showPassword ? "text" : "password"} value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} placeholder={isRegistering ? "Create a strong password" : "Your password"} required />
+          <button
+            type="button"
+            className="absolute inset-y-0 right-0 flex w-12 items-center justify-center text-slate-400 transition hover:text-lime-300"
+            onClick={() => setShowPassword((visible) => !visible)}
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            title={showPassword ? "Hide password" : "Show password"}
+          >
+            {showPassword ? "◉" : "◌"}
+          </button>
+        </div>
       </label>
       {isRegistering && (
         <div className="rounded-lg border border-white/10 bg-black/10 p-3" aria-live="polite">

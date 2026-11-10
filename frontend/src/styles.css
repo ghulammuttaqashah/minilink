@@ -12,6 +12,15 @@ html, body, #root { background: #080b12; min-height: 100%; }
 body { margin: 0; min-width: 320px; }
 button, input { font: inherit; }
 button { cursor: pointer; }
+.skeleton-shimmer {
+  background: linear-gradient(90deg, rgb(255 255 255 / 6%) 25%, rgb(255 255 255 / 14%) 50%, rgb(255 255 255 / 6%) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 .bg-slate-950 { background-color: #080b12 !important; }
 .text-slate-100 { color: #f1f5f9; }
 .text-white { color: #fff; }
