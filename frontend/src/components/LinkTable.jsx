@@ -9,7 +9,6 @@ export default function LinkTable({ urls, loading, onRefresh, onDelete }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState("recent");
-  const maxClicks = Math.max(...urls.map((url) => url.clickCount || 0), 1);
   const filteredUrls = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     const results = urls.filter((url) => {
@@ -91,11 +90,11 @@ export default function LinkTable({ urls, loading, onRefresh, onDelete }) {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <div className="grid min-w-[900px] grid-cols-[1.1fr_1.5fr_1fr_.8fr_.45fr_.6fr] gap-4 border-b border-white/10 px-5 py-4 font-mono text-[10px] font-bold uppercase tracking-widest text-slate-400 sm:px-7">
+          <div className="grid min-w-[900px] grid-cols-[1.1fr_1.5fr_1fr_1.1fr_.45fr_.6fr] gap-4 border-b border-white/10 px-5 py-4 font-mono text-[10px] font-bold uppercase tracking-widest text-slate-400 sm:px-7">
             <span>Short link</span><span>Destination</span><span>Created</span><span>Activity</span><span>Clicks</span><span>Actions</span>
           </div>
           {filteredUrls.map((url) => (
-            <div className="grid min-w-[900px] grid-cols-[1.1fr_1.5fr_1fr_.8fr_.45fr_.6fr] items-center gap-4 border-b border-white/5 px-5 py-5 text-sm sm:px-7" key={url.id}>
+            <div className="grid min-w-[900px] grid-cols-[1.1fr_1.5fr_1fr_1.1fr_.45fr_.6fr] items-center gap-4 border-b border-white/5 px-5 py-5 text-sm sm:px-7" key={url.id}>
               <a className="flex items-center gap-2 font-mono text-lime-300 hover:text-lime-200" href={url.shortUrl} target="_blank" rel="noreferrer">
                 <span className="h-1.5 w-1.5 rounded-full bg-lime-300" />
                 <span>
@@ -105,10 +104,7 @@ export default function LinkTable({ urls, loading, onRefresh, onDelete }) {
               </a>
               <span className="truncate font-medium text-slate-300" title={url.originalUrl}>{url.originalUrl}</span>
               <span className="font-medium text-slate-400">{formatDate(url.createdAt)}</span>
-              <div className="grid gap-1.5" title={`${url.clickCount || 0} clicks relative to your most clicked link`}>
-                <div className="h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-lime-300 transition-all" style={{ width: `${((url.clickCount || 0) / maxClicks) * 100}%` }} /></div>
-                <span className="text-[10px] text-slate-600">relative activity</span>
-              </div>
+              <ActivityGraph clickHistory={url.clickHistory} clickCount={url.clickCount || 0} />
               <strong className="text-right font-bold text-white">{url.clickCount || 0}</strong>
               <button type="button" className="rounded-md border border-rose-300/20 px-2 py-1.5 text-xs font-bold text-rose-200 transition hover:bg-rose-300/10 disabled:opacity-50" onClick={() => onDelete?.(url)} aria-label={`Delete ${url.shortCode}`}>Delete</button>
             </div>
@@ -116,6 +112,46 @@ export default function LinkTable({ urls, loading, onRefresh, onDelete }) {
         </div>
       )}
     </section>
+  );
+}
+
+function ActivityGraph({ clickHistory = [], clickCount }) {
+  const now = new Date();
+  const dailyCounts = Array.from({ length: 7 }, (_, index) => {
+    const day = new Date(now);
+    day.setHours(0, 0, 0, 0);
+    day.setDate(day.getDate() - (6 - index));
+    const nextDay = new Date(day);
+    nextDay.setDate(nextDay.getDate() + 1);
+    return clickHistory.filter((value) => {
+      const timestamp = new Date(value);
+      return timestamp >= day && timestamp < nextDay;
+    }).length;
+  });
+  const hasHistory = dailyCounts.some((count) => count > 0);
+  const max = Math.max(...dailyCounts, 1);
+  const points = dailyCounts.map((count, index) => {
+    const x = 4 + (index * 92) / 6;
+    const y = 30 - (count / max) * 24;
+    return `${x},${y}`;
+  }).join(" ");
+
+  return (
+    <div className="min-w-0" title={`${clickCount} total clicks over the last 7 days`}>
+      {hasHistory ? (
+        <svg className="h-10 w-full min-w-28 overflow-visible" viewBox="0 0 100 34" preserveAspectRatio="none" role="img" aria-label={`${clickCount} total clicks over the last 7 days`}>
+          <line x1="4" y1="30" x2="96" y2="30" stroke="currentColor" strokeOpacity=".2" vectorEffect="non-scaling-stroke" />
+          <polyline points={points} fill="none" stroke="#bef264" strokeWidth="2" vectorEffect="non-scaling-stroke" />
+          {dailyCounts.map((count, index) => {
+            const [x, y] = points.split(" ")[index].split(",");
+            return <circle key={`${x}-${y}`} cx={x} cy={y} r="1.8" fill="#bef264" vectorEffect="non-scaling-stroke" />;
+          })}
+        </svg>
+      ) : (
+        <div className="flex h-10 items-center text-[10px] font-medium text-slate-500">No activity yet</div>
+      )}
+      <span className="text-[10px] font-medium text-slate-500">last 7 days</span>
+    </div>
   );
 }
 

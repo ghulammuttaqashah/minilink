@@ -38,6 +38,11 @@ const urlSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    clickHistory: {
+      type: [Date],
+      default: [],
+      validate: [(history) => history.length <= 90, "click history cannot exceed 90 entries"],
+    },
   },
   { timestamps: true }
 );

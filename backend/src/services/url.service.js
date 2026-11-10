@@ -70,6 +70,10 @@ async function findByShortCode(shortCode) {
 
 async function incrementClickCount(url) {
   url.clickCount += 1;
+  url.clickHistory.push(new Date());
+  if (url.clickHistory.length > 90) {
+    url.clickHistory = url.clickHistory.slice(-90);
+  }
   await url.save();
 }
 
@@ -80,6 +84,7 @@ function serializeUrl(url) {
     shortCode: url.shortCode,
     shortUrl: `${publicBaseUrl}/${url.shortCode}`,
     clickCount: url.clickCount,
+    clickHistory: url.clickHistory || [],
     createdAt: url.createdAt,
     updatedAt: url.updatedAt,
     customerName: url.customerName,
