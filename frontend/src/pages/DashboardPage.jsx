@@ -64,7 +64,7 @@ export default function DashboardPage({ user, token, onSignOut }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" role="presentation" onMouseDown={(event) => {
           if (event.target === event.currentTarget && !deleting) setDeleteTarget(null);
         }}>
-          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#111722] p-6 shadow-2xl shadow-black/50" role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title">
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-slate-900 p-6 shadow-2xl shadow-black/50" role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title">
             <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-full bg-rose-400/10 text-xl text-rose-300">!</div>
             <h2 id="delete-dialog-title" className="text-xl font-bold text-white">Delete this short link?</h2>
             <p className="mt-3 text-sm leading-6 text-slate-300">This will permanently remove the link and its click count. Anyone using the short URL will no longer be redirected.</p>
