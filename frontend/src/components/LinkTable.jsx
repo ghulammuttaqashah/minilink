@@ -218,19 +218,53 @@ function ActivityDetails({ url, onClose }) {
         <div className="mt-6 rounded-xl border border-white/10 bg-black/10 p-4 sm:p-5">
           <div className="mb-5 flex items-center justify-between">
             <h3 className="font-bold text-white">Daily click activity</h3>
-            <span className="text-xs font-medium text-slate-500">Last 7 days</span>
+          <span className="text-xs font-medium text-slate-500">Hover points for details</span>
           </div>
-          <div className="grid h-48 grid-cols-7 items-end gap-2 sm:gap-4">
-            {dailyActivity.map(({ date, count }) => (
-              <div className="flex h-full flex-col items-center justify-end gap-2" key={date.toISOString()}>
-                <span className="text-xs font-bold text-lime-300">{count}</span>
-                <div className="flex h-32 w-full items-end rounded-t-md bg-white/5">
-                  <div className="w-full rounded-t-md bg-lime-300 transition-all" style={{ height: `${count ? Math.max((count / max) * 100, 8) : 0}%` }} />
+        <div className="relative h-56">
+          <div className="pointer-events-none absolute inset-0 flex flex-col justify-between pb-8 pt-2">
+            {[max, Math.ceil(max / 2), 0].map((value) => (
+              <div className="flex items-center gap-3" key={value}>
+                <span className="w-5 text-right text-[10px] font-medium text-slate-600">{value}</span>
+                <div className="h-px flex-1 bg-white/10" />
                 </div>
-                <span className="text-center text-[10px] font-medium text-slate-500">{dateFormatter.format(date)}</span>
-              </div>
             ))}
           </div>
+          <svg className="absolute inset-x-8 top-2 h-44 w-[calc(100%-2rem)] overflow-visible" viewBox="0 0 600 160" preserveAspectRatio="none" role="img" aria-label="Daily clicks for the last seven days">
+            <defs>
+              <linearGradient id="activity-area-gradient" x1="0" x2="0" y1="0" y2="1">
+                <stop offset="0%" stopColor="#bef264" stopOpacity=".35" />
+                <stop offset="100%" stopColor="#bef264" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            <polygon points={`0,160 ${dailyActivity.map(({ count }, index) => `${index * 100},${160 - (count / max) * 140}`).join(" ")} 600,160`} fill="url(#activity-area-gradient)" />
+            <polyline points={dailyActivity.map(({ count }, index) => `${index * 100},${160 - (count / max) * 140}`).join(" ")} fill="none" stroke="#bef264" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
+            {dailyActivity.map(({ date, count }, index) => {
+              const x = index * 100;
+              const y = 160 - (count / max) * 140;
+              return (
+                <g key={date.toISOString()}>
+                  <circle cx={x} cy={y} r="12" fill="transparent">
+                    <title>{`${dateFormatter.format(date)}: ${count} clicks`}</title>
+                  </circle>
+                  <circle cx={x} cy={y} r="5" fill="#bef264" stroke="#111722" strokeWidth="3" vectorEffect="non-scaling-stroke" />
+                </g>
+              );
+            })}
+          </svg>
+          <div className="absolute inset-x-8 bottom-0 flex justify-between">
+            {dailyActivity.map(({ date }) => (
+              <span className="w-12 -translate-x-1/2 text-center text-[10px] font-medium text-slate-500" key={date.toISOString()}>{dateFormatter.format(date).split(",")[0]}</span>
+            ))}
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-7 gap-1 border-t border-white/10 pt-3">
+          {dailyActivity.map(({ date, count }) => (
+            <div className="text-center" key={date.toISOString()}>
+              <span className="block text-xs font-bold text-lime-300">{count}</span>
+              <span className="text-[9px] font-medium text-slate-600">clicks</span>
+            </div>
+          ))}
+        </div>
         </div>
         <button type="button" className="mt-6 w-full rounded-lg border border-white/10 px-4 py-3 text-sm font-bold text-slate-300 transition hover:bg-white/10 hover:text-white" onClick={onClose}>Close details</button>
       </div>
