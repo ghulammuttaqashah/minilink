@@ -10,15 +10,21 @@ export default function DashboardPage({ user, token, onSignOut }) {
   const [urls, setUrls] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteError, setDeleteError] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
-  async function handleDelete(url) {
-    if (!window.confirm(`Delete "${url.customerName || url.shortCode}"? This cannot be undone.`)) return;
+  async function handleDelete() {
+    if (!deleteTarget) return;
     setDeleteError("");
+    setDeleting(true);
     try {
-      await apiRequest(`/api/v1/urls/${url.id}`, { method: "DELETE" }, token);
+      await apiRequest(`/api/v1/urls/${deleteTarget.id}`, { method: "DELETE" }, token);
+      setDeleteTarget(null);
       await loadUrls();
     } catch (error) {
       setDeleteError(error.message);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -51,8 +57,29 @@ export default function DashboardPage({ user, token, onSignOut }) {
           <StatsCards urls={urls} />
           <ShortenForm token={token} onCreated={loadUrls} />
           {deleteError && <p className="rounded-lg border border-rose-300/20 bg-rose-300/10 px-4 py-3 text-sm font-semibold text-rose-200">{deleteError}</p>}
-          <LinkTable urls={urls} loading={loading} onRefresh={loadUrls} onDelete={handleDelete} />
+          <LinkTable urls={urls} loading={loading} onRefresh={loadUrls} onDelete={setDeleteTarget} />
         </section>
+      )}
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm" role="presentation" onMouseDown={(event) => {
+          if (event.target === event.currentTarget && !deleting) setDeleteTarget(null);
+        }}>
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#111722] p-6 shadow-2xl shadow-black/50" role="dialog" aria-modal="true" aria-labelledby="delete-dialog-title">
+            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-full bg-rose-400/10 text-xl text-rose-300">!</div>
+            <h2 id="delete-dialog-title" className="text-xl font-bold text-white">Delete this short link?</h2>
+            <p className="mt-3 text-sm leading-6 text-slate-300">This will permanently remove the link and its click count. Anyone using the short URL will no longer be redirected.</p>
+            <div className="mt-4 rounded-lg border border-white/10 bg-black/20 px-4 py-3">
+              <p className="font-mono text-sm font-bold text-lime-300">{deleteTarget.shortCode}</p>
+              {deleteTarget.customerName && <p className="mt-1 text-xs font-medium text-slate-400">{deleteTarget.customerName}</p>}
+            </div>
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button type="button" className="rounded-lg border border-white/10 px-4 py-2.5 text-sm font-bold text-slate-300 transition hover:bg-white/10 disabled:opacity-50" onClick={() => setDeleteTarget(null)} disabled={deleting}>Keep link</button>
+              <button type="button" className="flex items-center justify-center gap-2 rounded-lg bg-rose-400 px-4 py-2.5 text-sm font-bold text-slate-950 transition hover:bg-rose-300 disabled:cursor-wait disabled:opacity-60" onClick={handleDelete} disabled={deleting}>
+                {deleting ? <><LoadingSpinner size="sm" /> Deleting...</> : "Delete permanently"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
