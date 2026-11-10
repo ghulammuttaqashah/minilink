@@ -1,6 +1,6 @@
 const http = require("node:http");
 const app = require("./app");
-const { nodeEnv, port } = require("./config/env");
+const { nodeEnv, port, publicBaseUrl } = require("./config/env");
 const { connectDatabase, disconnectDatabase } = require("./config/database");
 
 let server;
@@ -11,8 +11,8 @@ async function start() {
   server = http.createServer(app);
 
   server.listen(port, () => {
-    console.log(`Backend server is running at http://localhost:${port}`);
-    console.log(`Health check: http://localhost:${port}/health`);
+    console.log(`Backend server is running at ${publicBaseUrl}`);
+    console.log(`Health check: ${publicBaseUrl}/health`);
   });
 }
 
