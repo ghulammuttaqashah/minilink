@@ -1,4 +1,5 @@
 const crypto = require("node:crypto");
+const mongoose = require("mongoose");
 const Url = require("../models/url.model");
 const { generateShortCode } = require("../utils/short-code");
 const { AppError } = require("../utils/errors");
@@ -52,6 +53,17 @@ async function listUrls(ownerId) {
   return urls.map(serializeUrl);
 }
 
+async function deleteUrl(urlId, ownerId) {
+  if (!mongoose.isValidObjectId(urlId)) {
+    throw new AppError(404, "URL_NOT_FOUND", "That link was not found in your workspace");
+  }
+  const deletedUrl = await Url.findOneAndDelete({ _id: urlId, ownerId });
+  if (!deletedUrl) {
+    throw new AppError(404, "URL_NOT_FOUND", "That link was not found in your workspace");
+  }
+  return deletedUrl;
+}
+
 async function findByShortCode(shortCode) {
   return Url.findOne({ shortCode });
 }
@@ -80,4 +92,5 @@ module.exports = {
   incrementClickCount,
   serializeUrl,
   listUrls,
+  deleteUrl,
 };

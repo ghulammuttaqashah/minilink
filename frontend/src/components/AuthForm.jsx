@@ -40,18 +40,18 @@ export default function AuthForm({ mode, onModeChange, onAuthenticated }) {
   }
 
   return (
-    <form className="grid gap-4" onSubmit={handleSubmit}>
+    <form className="grid gap-5" onSubmit={handleSubmit}>
       <Notice message={error} />
       {mode === "register" && (
-        <label className="grid gap-2 text-xs text-slate-400">Full name<input className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-slate-600 focus:border-lime-300" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Alex Morgan" required /></label>
+        <label className="grid gap-2 text-sm font-semibold text-slate-300">Full name<input className="mt-1 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-slate-600 focus:border-lime-300" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Alex Morgan" required /></label>
       )}
-      <label className="grid gap-2 text-xs text-slate-400">Email address<input className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-slate-600 focus:border-lime-300" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder="you@example.com" required /></label>
-      <label className="grid gap-2 text-xs text-slate-400">
+      <label className="grid gap-2 text-sm font-semibold text-slate-300">Email address<input className="mt-1 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-slate-600 focus:border-lime-300" type="email" value={form.email} onChange={(event) => setForm({ ...form, email: event.target.value })} placeholder="you@example.com" required /></label>
+      <label className="grid gap-2 text-sm font-semibold text-slate-300">
         <span className="flex items-center justify-between">
           <span>Password</span>
           {isRegistering && <span className={passwordIsValid ? "text-lime-300" : "text-slate-500"}>{form.password.length}/8 minimum</span>}
         </span>
-        <input className="rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-slate-600 focus:border-lime-300" type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} placeholder={isRegistering ? "Create a strong password" : "Your password"} required />
+        <input className="mt-1 rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-white outline-none placeholder:text-slate-600 focus:border-lime-300" type="password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} placeholder={isRegistering ? "Create a strong password" : "Your password"} required />
       </label>
       {isRegistering && (
         <div className="rounded-lg border border-white/10 bg-black/10 p-3" aria-live="polite">
@@ -70,10 +70,10 @@ export default function AuthForm({ mode, onModeChange, onAuthenticated }) {
           </ul>
         </div>
       )}
-      <button className="mt-2 flex min-h-12 items-center justify-center gap-2 rounded-lg bg-lime-300 font-semibold text-slate-950 transition hover:bg-lime-200 disabled:opacity-60" disabled={loading}>
+      <button className="mt-3 flex min-h-12 items-center justify-center gap-2 rounded-lg bg-lime-300 font-bold text-slate-950 transition hover:bg-lime-200 disabled:opacity-60" disabled={loading}>
         {loading ? <><LoadingSpinner size="sm" /> Please wait...</> : mode === "login" ? "Sign in" : "Create account"}
       </button>
-      <button type="button" className="text-sm text-lime-300 hover:text-lime-200" onClick={() => { setError(""); onModeChange(mode === "login" ? "register" : "login"); }}>
+      <button type="button" className="border-t border-white/10 pt-5 text-sm font-semibold text-lime-300 hover:text-lime-200" onClick={() => { setError(""); onModeChange(mode === "login" ? "register" : "login"); }}>
         {mode === "login" ? "New here? Create an account" : "Already have an account? Sign in"}
       </button>
     </form>

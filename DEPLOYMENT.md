@@ -53,7 +53,14 @@ Expected response:
 
 ## 3. Deploy the frontend to Vercel
 
-Import the repository into Vercel and set:
+Import the repository into Vercel. Use one of these supported configurations:
+
+### Recommended: repository root
+
+Leave Vercel's **Root Directory** empty. The root `vercel.json` configures the
+frontend build and SPA fallback automatically.
+
+### Alternative: frontend directory
 
 ```text
 Root directory: frontend
@@ -67,8 +74,10 @@ Add this environment variable:
 VITE_API_BASE_URL=https://<your-render-service>.onrender.com
 ```
 
-The included `frontend/vercel.json` rewrites client-side routes such as
-`/auth` and `/dashboard` to `index.html`. Redeploy after setting the variable.
+When using the `frontend` root directory, Vercel uses `frontend/vercel.json`.
+Both configurations rewrite client-side routes such as `/auth` and `/dashboard`
+to `index.html`. After changing the root directory or configuration, redeploy
+the project rather than only refreshing the browser.
 
 ## 4. Production smoke test
 

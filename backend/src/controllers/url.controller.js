@@ -4,6 +4,7 @@ const {
   incrementClickCount,
   serializeUrl,
   listUrls,
+  deleteUrl,
 } = require("../services/url.service");
 const { validateOriginalUrl, validateCustomerName, validateCustomCode } = require("../validators/url.validator");
 const { AppError } = require("../utils/errors");
@@ -27,6 +28,15 @@ async function createUrl(req, res, next) {
 async function listUserUrls(req, res, next) {
   try {
     res.json({ data: await listUrls(req.user.id) });
+  } catch (error) {
+    next(error);
+  }
+}
+
+async function deleteUserUrl(req, res, next) {
+  try {
+    await deleteUrl(req.params.id, req.user.id);
+    res.status(204).send();
   } catch (error) {
     next(error);
   }
@@ -59,4 +69,4 @@ async function redirectToUrl(req, res, next) {
   }
 }
 
-module.exports = { createUrl, getUrl, redirectToUrl, listUserUrls };
+module.exports = { createUrl, getUrl, redirectToUrl, listUserUrls, deleteUserUrl };

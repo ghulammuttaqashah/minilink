@@ -5,7 +5,7 @@ function formatDate(value) {
   return new Intl.DateTimeFormat("en", { month: "short", day: "numeric", year: "numeric" }).format(new Date(value));
 }
 
-export default function LinkTable({ urls, loading, onRefresh }) {
+export default function LinkTable({ urls, loading, onRefresh, onDelete }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState("recent");
@@ -42,7 +42,7 @@ export default function LinkTable({ urls, loading, onRefresh }) {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="mb-3 font-mono text-xs uppercase tracking-[.2em] text-lime-300">Your library</p>
-            <h2 className="text-2xl font-semibold tracking-tight text-white">Your links</h2>
+            <h2 className="text-2xl font-bold tracking-tight text-white">Your links</h2>
           </div>
           <button className="rounded-lg px-3 py-2 text-sm text-slate-400 transition hover:bg-white/10 hover:text-white" onClick={onRefresh} disabled={loading}>
             {loading ? <LoadingDots /> : "Refresh"}
@@ -91,11 +91,11 @@ export default function LinkTable({ urls, loading, onRefresh }) {
         </div>
       ) : (
         <div className="overflow-x-auto">
-          <div className="grid min-w-[760px] grid-cols-[1.1fr_1.7fr_1fr_.8fr_.45fr] gap-4 border-b border-white/10 px-5 py-4 font-mono text-[10px] uppercase tracking-widest text-slate-600 sm:px-7">
-            <span>Short link</span><span>Destination</span><span>Created</span><span>Activity</span><span>Clicks</span>
+          <div className="grid min-w-[900px] grid-cols-[1.1fr_1.5fr_1fr_.8fr_.45fr_.6fr] gap-4 border-b border-white/10 px-5 py-4 font-mono text-[10px] font-bold uppercase tracking-widest text-slate-400 sm:px-7">
+            <span>Short link</span><span>Destination</span><span>Created</span><span>Activity</span><span>Clicks</span><span>Actions</span>
           </div>
           {filteredUrls.map((url) => (
-            <div className="grid min-w-[760px] grid-cols-[1.1fr_1.7fr_1fr_.8fr_.45fr] items-center gap-4 border-b border-white/5 px-5 py-5 text-sm sm:px-7" key={url.id}>
+            <div className="grid min-w-[900px] grid-cols-[1.1fr_1.5fr_1fr_.8fr_.45fr_.6fr] items-center gap-4 border-b border-white/5 px-5 py-5 text-sm sm:px-7" key={url.id}>
               <a className="flex items-center gap-2 font-mono text-lime-300 hover:text-lime-200" href={url.shortUrl} target="_blank" rel="noreferrer">
                 <span className="h-1.5 w-1.5 rounded-full bg-lime-300" />
                 <span>
@@ -103,13 +103,14 @@ export default function LinkTable({ urls, loading, onRefresh }) {
                   {url.customerName && <small className="mt-1 block max-w-32 truncate font-sans text-[10px] text-slate-500" title={url.customerName}>{url.customerName}</small>}
                 </span>
               </a>
-              <span className="truncate text-slate-400" title={url.originalUrl}>{url.originalUrl}</span>
-              <span className="text-slate-500">{formatDate(url.createdAt)}</span>
+              <span className="truncate font-medium text-slate-300" title={url.originalUrl}>{url.originalUrl}</span>
+              <span className="font-medium text-slate-400">{formatDate(url.createdAt)}</span>
               <div className="grid gap-1.5" title={`${url.clickCount || 0} clicks relative to your most clicked link`}>
                 <div className="h-1.5 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-lime-300 transition-all" style={{ width: `${((url.clickCount || 0) / maxClicks) * 100}%` }} /></div>
                 <span className="text-[10px] text-slate-600">relative activity</span>
               </div>
-              <strong className="text-right text-white">{url.clickCount || 0}</strong>
+              <strong className="text-right font-bold text-white">{url.clickCount || 0}</strong>
+              <button type="button" className="rounded-md border border-rose-300/20 px-2 py-1.5 text-xs font-bold text-rose-200 transition hover:bg-rose-300/10 disabled:opacity-50" onClick={() => onDelete?.(url)} aria-label={`Delete ${url.shortCode}`}>Delete</button>
             </div>
           ))}
         </div>

@@ -1,0 +1,19 @@
+{
+  "buildCommand": "cd frontend && npm run build",
+  "installCommand": "cd frontend && npm ci",
+  "outputDirectory": "frontend/dist",
+  "rewrites": [
+    {
+      "source": "/dashboard",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/auth",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ]
+}
