@@ -312,7 +312,3 @@ Deferred for the next iteration:
 - Multiple backend instances and Nginx load balancing
 - k6 load testing and measured performance reports
 - Rich device, country, referrer, and time-series analytics
-
-## LinkedIn post
-
-See the ready-to-publish post in [LINKEDIN_POST.md](./LINKEDIN_POST.md).
